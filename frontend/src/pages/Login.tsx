@@ -68,7 +68,7 @@ export default function Login() {
         <div className="w-full max-w-[900px] flex rounded-3xl overflow-hidden bg-white border border-slate-100 shadow-[0_8px_40px_rgba(0,0,0,0.07)]">
 
           {/* Left — Form */}
-          <div className="w-full lg:w-1/2 p-10 flex flex-col justify-between">
+          <div className="w-full lg:w-1/2 p-6 md:p-10 flex flex-col justify-between">
             <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
 
               <p className="text-[10px] font-black tracking-widest uppercase mb-2 text-slate-400"
@@ -119,12 +119,14 @@ export default function Login() {
                 <span className="text-slate-200">·</span>
                 <Link to="/terms" className="hover:text-slate-900 transition-colors">Terms</Link>
               </div>
-              <button
-                onClick={handleDevLogin}
-                className="w-full py-2 rounded-xl text-[11px] font-black uppercase tracking-widest border border-dashed border-slate-200 text-slate-300 hover:border-slate-400 hover:text-slate-500 transition-all"
-              >
-                ⚡ Dev Login (localhost only)
-              </button>
+              {import.meta.env.DEV && (
+                <button
+                  onClick={handleDevLogin}
+                  className="w-full py-2 rounded-xl text-[11px] font-black uppercase tracking-widest border border-dashed border-slate-200 text-slate-300 hover:border-slate-400 hover:text-slate-500 transition-all"
+                >
+                  ⚡ Dev Login (localhost only)
+                </button>
+              )}
             </div>
           </div>
 

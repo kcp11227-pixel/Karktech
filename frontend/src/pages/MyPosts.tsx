@@ -82,12 +82,12 @@ export default function MyPosts() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in-up">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
         <div>
-          <h2 className={`text-3xl font-black tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: 'Merriweather, serif', fontWeight: 900 }}>My Posts</h2>
-          <p className={`font-medium ${isDarkMode ? 'text-slate-400' : ''}`} style={isDarkMode ? {} : { color: '#1d1d1f', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif', letterSpacing: '-0.01em' }}>Manage all your Facebook posts across every connected page.</p>
+          <h2 className={`text-2xl md:text-3xl font-black tracking-tight mb-1 md:mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: 'Merriweather, serif', fontWeight: 900 }}>My Posts</h2>
+          <p className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : ''}`} style={isDarkMode ? {} : { color: '#1d1d1f', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif', letterSpacing: '-0.01em' }}>Manage all your Facebook posts across every connected page.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={fetchPosts}
             title="Refresh"

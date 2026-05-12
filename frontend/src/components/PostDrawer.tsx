@@ -612,9 +612,9 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
         className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
 
-      {/* Floating Drawer Panel - gap on all 4 sides */}
+      {/* Floating Drawer Panel */}
       <div
-        className={`fixed top-4 bottom-4 right-4 w-[calc(100%-300px)] max-w-[860px] bg-[#1a1d23] z-50 flex flex-col transition-transform duration-300 ease-out shadow-[-20px_0_60px_rgba(0,0,0,0.4)] rounded-2xl overflow-hidden ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%+1rem)]'}`}
+        className={`fixed top-0 bottom-0 right-0 md:top-4 md:bottom-4 md:right-4 w-full md:w-[calc(100%-300px)] max-w-[860px] bg-[#1a1d23] z-50 flex flex-col transition-transform duration-300 ease-out shadow-[-20px_0_60px_rgba(0,0,0,0.4)] md:rounded-2xl overflow-hidden ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%+1rem)]'}`}
       >
         {/* Top Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-[#1a1d23] to-[#1e2029]">
@@ -955,8 +955,8 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
             </div>
           </div>
 
-          {/* RIGHT: Smart Facebook Preview */}
-          <div className="w-[290px] flex flex-col bg-[#16181e]">
+          {/* RIGHT: Smart Facebook Preview (hidden on mobile) */}
+          <div className="hidden md:flex w-[290px] flex-col bg-[#16181e]">
             <div className="px-5 py-4 border-b border-white/10">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-1.5">

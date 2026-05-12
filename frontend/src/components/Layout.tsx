@@ -78,9 +78,9 @@ export default function Layout() {
   return (
     <div className={`flex h-screen font-sans ${isDarkMode ? 'bg-[#080810]' : ''}`} style={isDarkMode ? {} : { background: '#FAF9F6' }}>
 
-      {/* ── SIDEBAR ── */}
+      {/* ── SIDEBAR (hidden on mobile) ── */}
       <aside
-        className={`${collapsed ? 'w-[72px]' : 'w-64'} relative flex flex-col transition-all duration-300 ease-in-out flex-shrink-0
+        className={`${collapsed ? 'w-[72px]' : 'w-64'} relative hidden md:flex flex-col transition-all duration-300 ease-in-out flex-shrink-0
           ${isDarkMode
             ? 'bg-[#0d0d16] border-r border-white/[0.06]'
             : 'bg-white border-r border-slate-200 shadow-lg'
@@ -246,13 +246,13 @@ export default function Layout() {
 
       {/* ── MAIN ── */}
       <main className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#080810]' : ''}`} style={isDarkMode ? {} : { background: '#FAF9F6' }}>
-        <div className="flex-1 overflow-auto p-8 lg:p-10 relative">
-          <div className={`absolute top-0 right-0 w-[600px] h-[400px] rounded-full filter blur-[120px] pointer-events-none ${isDarkMode ? 'bg-blue-600/5' : 'bg-blue-400/5'}`} />
+        <div className="flex-1 overflow-auto p-4 md:p-8 lg:p-10 relative pb-20 md:pb-8">
+          <div className={`absolute top-0 right-0 w-[300px] md:w-[600px] h-[200px] md:h-[400px] rounded-full filter blur-[120px] pointer-events-none ${isDarkMode ? 'bg-blue-600/5' : 'bg-blue-400/5'}`} />
           <div className="max-w-6xl mx-auto relative z-10">
             <Outlet context={{ setDrawerOpen, isDarkMode, setProfileOpen, openDrawerWith }} />
           </div>
         </div>
-        <footer className={`shrink-0 border-t px-10 py-2.5 flex items-center justify-center gap-5 ${isDarkMode ? 'bg-[#0d0d16] border-white/[0.05]' : 'bg-white border-slate-200'}`}>
+        <footer className={`shrink-0 border-t px-4 md:px-10 py-2.5 hidden md:flex items-center justify-center gap-5 ${isDarkMode ? 'bg-[#0d0d16] border-white/[0.05]' : 'bg-white border-slate-200'}`}>
           <span className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-700' : 'text-slate-900'}`}>© 2026 KarkTech</span>
           <span className={`text-[10px] ${isDarkMode ? 'text-slate-800' : 'text-slate-300'}`}>·</span>
           <Link to="/privacy" className={`text-[10px] font-bold transition-colors ${isDarkMode ? 'text-slate-600 hover:text-blue-400' : 'text-slate-900 hover:text-black'}`}>Privacy Policy</Link>
@@ -260,6 +260,33 @@ export default function Layout() {
           <Link to="/terms" className={`text-[10px] font-bold transition-colors ${isDarkMode ? 'text-slate-600 hover:text-blue-400' : 'text-slate-900 hover:text-black'}`}>Terms & Conditions</Link>
         </footer>
       </main>
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      {!isAdmin && (
+        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around px-2 py-2 border-t ${isDarkMode ? 'bg-[#0d0d16] border-white/[0.08]' : 'bg-white border-slate-200'}`}
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
+          {navItems.slice(0, 4).map(item => {
+            const active = isActive(item.to);
+            return (
+              <Link key={item.to} to={item.to}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${active ? 'text-blue-500' : isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div className={`w-6 h-6 flex items-center justify-center rounded-lg transition-all ${active ? `bg-gradient-to-br ${item.color} shadow-sm` : ''}`}>
+                  <item.icon className={`w-4 h-4 ${active ? 'text-white' : ''}`} />
+                </div>
+                <span className="text-[9px] font-bold">{item.label}</span>
+              </Link>
+            );
+          })}
+          {/* Create Post FAB */}
+          <button onClick={() => setDrawerOpen(true)}
+            className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all text-blue-500">
+            <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 shadow-sm shadow-blue-500/40">
+              <PenSquare className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-[9px] font-bold">Create</span>
+          </button>
+        </nav>
+      )}
 
       <PostDrawer isOpen={drawerOpen} onClose={() => { setDrawerOpen(false); setDrawerPrefill(null); }} prefill={drawerPrefill ?? undefined} />
       <ProfilePanel isOpen={profileOpen} onClose={() => setProfileOpen(false)} isDarkMode={isDarkMode} onAvatarChange={setSavedAvatar} />
