@@ -617,19 +617,19 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
         className={`fixed top-0 bottom-0 right-0 md:top-4 md:bottom-4 md:right-4 w-full md:w-[calc(100%-300px)] max-w-[860px] bg-[#1a1d23] z-50 flex flex-col transition-transform duration-300 ease-out shadow-[-20px_0_60px_rgba(0,0,0,0.4)] md:rounded-2xl overflow-hidden ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%+1rem)]'}`}
       >
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-[#1a1d23] to-[#1e2029]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center ring-1 ring-blue-500/30 shadow-lg shadow-blue-500/20 bg-[#0d0d16]">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/10 bg-gradient-to-r from-[#1a1d23] to-[#1e2029]">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-7 h-7 md:w-9 md:h-9 rounded-xl overflow-hidden flex items-center justify-center ring-1 ring-blue-500/30 shadow-lg shadow-blue-500/20 bg-[#0d0d16]">
               <img src="/karklogo.png.png" alt="KarkTech Logo" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
             </div>
             <div>
-              <span className="text-white font-extrabold text-base tracking-tight">KarkTech <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">Composer</span></span>
-              <p className="text-[10px] text-white/30 font-semibold tracking-wide">Facebook Post Builder</p>
+              <span className="text-white font-extrabold text-sm md:text-base tracking-tight">KarkTech <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">Composer</span></span>
+              <p className="hidden md:block text-[10px] text-white/30 font-semibold tracking-wide">Facebook Post Builder</p>
             </div>
-            <span className="ml-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/20">Beta</span>
+            <span className="hidden sm:inline ml-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/20">Beta</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white text-xs font-semibold transition-all border border-white/10">
+            <button className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white text-xs font-semibold transition-all border border-white/10">
               <Hash className="w-3.5 h-3.5" />
               Labels
             </button>
@@ -645,7 +645,7 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
           {/* LEFT: Composer */}
           <div className="flex-1 flex flex-col border-r border-white/10 overflow-y-auto">
             {/* Page Multi-Select Dropdown */}
-            <div className="px-6 pt-5 pb-3">
+            <div className="px-4 md:px-6 pt-4 md:pt-5 pb-3">
               <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Post to Pages</p>
               <div className="relative">
                 {/* Trigger Button */}
@@ -727,7 +727,7 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
             </div>
 
             {/* Post / Reel / Story Tabs */}
-            <div className="flex items-center gap-1 px-6 pb-3 border-b border-white/10">
+            <div className="flex items-center gap-1 px-4 md:px-6 pb-3 border-b border-white/10">
               {([
                 { label: 'Post', icon: FileText },
                 { label: 'Reel', icon: Video },
@@ -755,7 +755,7 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
             </div>
 
             {/* Text Area */}
-            <div className="px-6 pt-4 flex-1">
+            <div className="px-4 md:px-6 pt-4 flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Type className="w-3.5 h-3.5 text-white/30" />
                 <span className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Post Content</span>
@@ -764,21 +764,21 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
               <textarea
                 value={content}
                 onChange={e => setContent(e.target.value)}
-                placeholder="Write something or use shortcodes, spintax, @ for mentioning..."
-                className="w-full min-h-[160px] bg-transparent text-white/90 text-sm font-medium outline-none resize-none placeholder-white/20 leading-relaxed"
+                placeholder="Write something..."
+                className="w-full min-h-[140px] md:min-h-[160px] bg-transparent text-white/90 text-sm font-medium outline-none resize-none placeholder-white/20 leading-relaxed"
               />
 
               {/* Toolbar */}
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
                 <div className="flex items-center gap-1">
-                  <button onClick={() => insertText(' #')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/50 hover:text-blue-400 hover:bg-blue-400/10 text-xs font-bold transition-all border border-transparent hover:border-blue-400/20">
-                    <Hash className="w-3.5 h-3.5" /> Hashtag
+                  <button onClick={() => insertText(' #')} className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-white/50 hover:text-blue-400 hover:bg-blue-400/10 text-xs font-bold transition-all border border-transparent hover:border-blue-400/20">
+                    <Hash className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Hashtag</span>
                   </button>
-                  <button onClick={() => insertText(' @')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/50 hover:text-cyan-400 hover:bg-cyan-400/10 text-xs font-bold transition-all border border-transparent hover:border-cyan-400/20">
-                    <AtSign className="w-3.5 h-3.5" /> Mention
+                  <button onClick={() => insertText(' @')} className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-white/50 hover:text-cyan-400 hover:bg-cyan-400/10 text-xs font-bold transition-all border border-transparent hover:border-cyan-400/20">
+                    <AtSign className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Mention</span>
                   </button>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/50 hover:text-purple-400 hover:bg-purple-400/10 text-xs font-bold transition-all border border-transparent hover:border-purple-400/20">
-                    <Sparkles className="w-3.5 h-3.5" /> AI Assist
+                  <button className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-white/50 hover:text-purple-400 hover:bg-purple-400/10 text-xs font-bold transition-all border border-transparent hover:border-purple-400/20">
+                    <Sparkles className="w-3.5 h-3.5" /> <span className="hidden sm:inline">AI Assist</span>
                   </button>
                 </div>
                 <div className="flex items-center gap-2 relative">
@@ -828,7 +828,7 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
             </div>
 
             {/* Media Upload */}
-            <div className="px-6 py-4">
+            <div className="px-4 md:px-6 py-4">
               <div className="flex items-center gap-2 mb-2">
                 <Upload className="w-3.5 h-3.5 text-white/30" />
                 <span className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Attach Media</span>
@@ -889,7 +889,7 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
             </div>
 
             {/* Add Comment */}
-            <div className="px-6 pb-4 border-t border-white/10 pt-4 space-y-3">
+            <div className="px-4 md:px-6 pb-4 border-t border-white/10 pt-4 space-y-3">
               <button
                 onClick={() => setShowCommentBox(v => !v)}
                 className="flex items-center gap-2 text-sm text-white/40 hover:text-blue-400 font-semibold transition-colors"
@@ -1006,7 +1006,7 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
         </div>
 
         {/* Bottom Action Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 bg-[#16181e]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 md:px-6 py-3 md:py-4 gap-2 sm:gap-0 border-t border-white/10 bg-[#16181e]">
           {/* External URL Fetcher */}
           <div className="relative flex items-center gap-2">
             <button
@@ -1018,12 +1018,13 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
               }`}
             >
               <Globe className="w-3.5 h-3.5" />
-              External URL
+              <span className="hidden sm:inline">External URL</span>
+              <span className="sm:hidden">URL</span>
             </button>
 
             {/* URL Input Popup */}
             {showUrlInput && (
-              <div className="absolute bottom-full left-0 mb-2 bg-[#0f1117] border border-white/10 rounded-2xl p-4 shadow-2xl w-[320px] z-10">
+              <div className="absolute bottom-full left-0 mb-2 bg-[#0f1117] border border-white/10 rounded-2xl p-4 shadow-2xl w-[min(320px,calc(100vw-2rem))] z-10">
                 <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-2">Paste URL to fetch content</p>
                 <div className="flex gap-2">
                   <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-blue-500 transition-all">
@@ -1059,15 +1060,16 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
             <button
               onClick={handleDraft}
               disabled={isPublishing}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-bold text-xs text-white/50 bg-white/5 hover:bg-white/10 border border-white/10 transition-all disabled:opacity-40"
+              className="flex items-center gap-1.5 px-3 md:px-5 py-2.5 rounded-xl font-bold text-xs text-white/50 bg-white/5 hover:bg-white/10 border border-white/10 transition-all disabled:opacity-40"
             >
               <FileText className="w-3.5 h-3.5" />
-              Save Draft
+              <span className="hidden sm:inline">Save Draft</span>
+              <span className="sm:hidden">Draft</span>
             </button>
             <button
               onClick={handlePublish}
               disabled={isPublishing}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-60"
+              className="flex items-center gap-1.5 px-3 md:px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-60"
             >
               {isPublishing
                 ? <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1092,7 +1094,7 @@ export default function PostDrawer({ isOpen, onClose, prefill }: PostDrawerProps
                 </button>
               </div>
               {showSchedule && (
-                <div className="absolute bottom-full right-0 mb-2 bg-[#1a1d23] border border-white/10 rounded-2xl shadow-2xl min-w-[280px] overflow-hidden z-20">
+                <div className="absolute bottom-full right-0 mb-2 bg-[#1a1d23] border border-white/10 rounded-2xl shadow-2xl w-[min(280px,calc(100vw-2rem))] overflow-hidden z-20">
                   {/* Tabs */}
                   <div className="flex border-b border-white/10">
                     <button
