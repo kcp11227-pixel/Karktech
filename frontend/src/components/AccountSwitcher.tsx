@@ -149,7 +149,7 @@ export default function AccountSwitcher({ isDarkMode, collapsed }: Props) {
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
-        {showAddModal && <AddAccountModal isDarkMode={isDarkMode} tokenInput={tokenInput} setTokenInput={setTokenInput} connecting={connecting} onConnect={connectAccount} onClose={() => setShowAddModal(false)} />}
+        {showAddModal && <AddAccountModal isDarkMode={isDarkMode} tokenInput={tokenInput} setTokenInput={setTokenInput} connecting={connecting} onConnect={connectAccount} onFBConnect={async (t) => { setTokenInput(t); setTimeout(() => connectAccount(), 100); }} onClose={() => setShowAddModal(false)} />}
       </div>
     );
   }
