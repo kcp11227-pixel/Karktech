@@ -131,7 +131,7 @@ router.get('/', async (req: AuthRequest, res) => {
 // Publish Now (for draft/failed posts)
 router.post('/:id/publish', async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const post = await prisma.post.findFirst({ where: { id, userId: req.userId } });
     if (!post) return res.status(404).json({ error: 'Post not found' });
 
@@ -146,7 +146,7 @@ router.post('/:id/publish', async (req: AuthRequest, res) => {
 // Delete Post
 router.delete('/:id', async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const post = await prisma.post.findFirst({ where: { id, userId: req.userId } });
     if (!post) return res.status(404).json({ error: 'Post not found' });
     await prisma.post.delete({ where: { id } });
