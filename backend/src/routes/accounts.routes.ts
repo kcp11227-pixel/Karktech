@@ -114,11 +114,11 @@ router.post('/', async (req: AuthRequest, res) => {
 // Refresh page pictures for an account
 router.post('/:id/refresh-pictures', async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const account = await prisma.facebookAccount.findFirst({
       where: { id, userId: req.userId },
       include: { pages: true },
-    });
+    }) as any;
     if (!account) return res.status(404).json({ error: 'Account not found' });
 
     let updated = 0;
@@ -143,7 +143,7 @@ router.post('/:id/refresh-pictures', async (req: AuthRequest, res) => {
 // Remove a Facebook account (and nullify its pages)
 router.delete('/:id', async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     await prisma.facebookAccount.deleteMany({
       where: { id, userId: req.userId },
     });
@@ -156,7 +156,7 @@ router.delete('/:id', async (req: AuthRequest, res) => {
 // Get pages for a specific account
 router.get('/:id/pages', async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const pages = await prisma.facebookPage.findMany({
       where: { userId: req.userId, accountId: id },
       select: { id: true, pageId: true, name: true, pictureUrl: true, accountId: true },
