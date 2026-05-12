@@ -44,11 +44,11 @@ export default function HealthPage() {
 
   const refreshHealth = () => {
     setIsRefreshing(true);
-    toast.loading('Scanning platform systems...', { id: 'health-check' });
+    toast.loading('Scanning platform systems...');
     
     setTimeout(() => {
       setIsRefreshing(false);
-      toast.success('Health scan complete!', { id: 'health-check' });
+      toast.success('Health scan complete!');
       // Randomize slightly for demo
       setHealthItems(prev => prev.map(item => ({
         ...item,
