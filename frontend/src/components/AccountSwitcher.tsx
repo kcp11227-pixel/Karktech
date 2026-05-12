@@ -286,24 +286,38 @@ function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, on
 }) {
   const [showManual, setShowManual] = useState(false);
   const [fbLoading, setFbLoading] = useState(false);
+  const [sdkReady, setSdkReady] = useState(!!(window as any).FB);
 
-  const loginWithFacebook = async () => {
-    setFbLoading(true);
-    try {
-      await loadFBSDK();
-      (window as any).FB.login((response: any) => {
-        if (response.authResponse?.accessToken) {
-          onFBConnect(response.authResponse.accessToken);
-          setFbLoading(false);
-        } else {
-          setFbLoading(false);
-          toast.error('Facebook login cancelled or permission denied');
-        }
-      }, { scope: 'pages_manage_posts,pages_read_engagement,pages_show_list,public_profile' });
-    } catch {
-      setFbLoading(false);
-      toast.error('Failed to load Facebook SDK');
+  // Pre-load SDK when modal opens so FB.login() can be called synchronously
+  useEffect(() => {
+    if ((window as any).FB) { setSdkReady(true); return; }
+    (window as any).fbAsyncInit = () => {
+      (window as any).FB.init({ appId: FB_APP_ID, cookie: true, xfbml: false, version: 'v19.0' });
+      setSdkReady(true);
+    };
+    if (!document.getElementById('fb-sdk')) {
+      const s = document.createElement('script');
+      s.id = 'fb-sdk';
+      s.src = 'https://connect.facebook.net/en_US/sdk.js';
+      s.async = true;
+      document.head.appendChild(s);
     }
+  }, []);
+
+  // Must be synchronous (not async) to avoid popup blocker
+  const loginWithFacebook = () => {
+    if (!sdkReady) { toast.error('Facebook SDK loading, try again in a second'); return; }
+    setFbLoading(true);
+    (window as any).FB.login((response: any) => {
+      setFbLoading(false);
+      if (response.authResponse?.accessToken) {
+        onFBConnect(response.authResponse.accessToken);
+      } else {
+        toast.error(response.status === 'not_authorized'
+          ? 'Permission denied. Allow all requested permissions.'
+          : 'Facebook login cancelled');
+      }
+    }, { scope: 'pages_manage_posts,pages_read_engagement,pages_show_list,public_profile' });
   };
 
   return (
