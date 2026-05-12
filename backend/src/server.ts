@@ -40,50 +40,89 @@ app.use((_req, res, next) => {
   next();
 });
 
-// Facebook OAuth callback — no auth middleware (public)
+// Facebook OAuth — full-page redirect (no popup, no JS SDK issues)
 app.get('/api/facebook/oauth/start', (req, res) => {
-  const { userId } = req.query;
   const APP_ID = process.env.FACEBOOK_APP_ID;
   const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
   const redirectUri = `${BACKEND_URL}/api/facebook/oauth/callback`;
   const scope = 'pages_manage_posts,pages_read_engagement,pages_show_list,public_profile';
-  const state = encodeURIComponent(String(userId || ''));
+  const state = encodeURIComponent(String(req.query.state || ''));
   const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
   res.redirect(url);
 });
 
 app.get('/api/facebook/oauth/callback', async (req, res) => {
+  const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
   const { code, state } = req.query;
-  if (!code) return res.send('<script>window.close();</script>');
+  if (!code) return res.redirect(`${FRONTEND_URL}/?fb_error=cancelled`);
 
   try {
     const APP_ID = process.env.FACEBOOK_APP_ID;
     const APP_SECRET = process.env.FACEBOOK_APP_SECRET;
     const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
     const redirectUri = `${BACKEND_URL}/api/facebook/oauth/callback`;
+    const axiosInst = (await import('axios')).default;
+    const { PrismaClient } = await import('@prisma/client');
+    const jwt = await import('jsonwebtoken');
+    const prisma = new PrismaClient();
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
-    // Exchange code for token
-    const tokenRes = await (await import('axios')).default.get('https://graph.facebook.com/v19.0/oauth/access_token', {
+    // Decode state to get user JWT
+    let userId: string | null = null;
+    try {
+      const stateData = JSON.parse(Buffer.from(String(state), 'base64').toString());
+      const payload = jwt.verify(stateData.token, JWT_SECRET) as { userId: string };
+      userId = payload.userId;
+    } catch { }
+
+    if (!userId) return res.redirect(`${FRONTEND_URL}/?fb_error=auth`);
+
+    // Exchange code for short-lived token
+    const tokenRes = await axiosInst.get('https://graph.facebook.com/v19.0/oauth/access_token', {
       params: { client_id: APP_ID, client_secret: APP_SECRET, redirect_uri: redirectUri, code },
     });
     const accessToken = tokenRes.data.access_token;
 
-    // Get long-lived token
-    const llRes = await (await import('axios')).default.get('https://graph.facebook.com/v19.0/oauth/access_token', {
-      params: { grant_type: 'fb_exchange_token', client_id: APP_ID, client_secret: APP_SECRET, fb_exchange_token: accessToken },
-    });
-    const longToken = llRes.data.access_token || accessToken;
+    // Exchange for long-lived token
+    let longToken = accessToken;
+    try {
+      const llRes = await axiosInst.get('https://graph.facebook.com/v19.0/oauth/access_token', {
+        params: { grant_type: 'fb_exchange_token', client_id: APP_ID, client_secret: APP_SECRET, fb_exchange_token: accessToken },
+      });
+      longToken = llRes.data.access_token || accessToken;
+    } catch { }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.send(`
-      <script>
-        window.opener && window.opener.postMessage({ type: 'fb_oauth_token', token: '${longToken}' }, '${frontendUrl}');
-        window.close();
-      </script>
-    `);
+    // Get FB user info
+    const meRes = await axiosInst.get('https://graph.facebook.com/v19.0/me', {
+      params: { access_token: longToken, fields: 'id,name,picture.type(large)' },
+    });
+    const { id: fbUserId, name, picture } = meRes.data;
+    const avatarUrl = picture?.data?.url || null;
+
+    // Upsert account
+    const account = await prisma.facebookAccount.upsert({
+      where: { userId_fbUserId: { userId, fbUserId } },
+      update: { name, avatarUrl, accessToken: longToken },
+      create: { userId, fbUserId, name, avatarUrl, accessToken: longToken },
+    });
+
+    // Get and store pages
+    const pagesRes = await axiosInst.get('https://graph.facebook.com/v19.0/me/accounts', {
+      params: { access_token: longToken, fields: 'id,name,access_token,picture.type(large)' },
+    });
+    for (const page of (pagesRes.data?.data || [])) {
+      const pictureUrl = page.picture?.data?.url || null;
+      await prisma.facebookPage.upsert({
+        where: { userId_pageId: { userId, pageId: page.id } },
+        update: { name: page.name, accessToken: page.access_token, accountId: account.id, pictureUrl },
+        create: { userId, accountId: account.id, pageId: page.id, name: page.name, accessToken: page.access_token, pictureUrl },
+      });
+    }
+
+    res.redirect(`${FRONTEND_URL}/?fb_success=1`);
   } catch (err: any) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.send(`<script>window.opener && window.opener.postMessage({ type: 'fb_oauth_error', error: 'Failed' }, '${frontendUrl}'); window.close();</script>`);
+    console.error('OAuth callback error:', err?.response?.data || err.message);
+    res.redirect(`${FRONTEND_URL}/?fb_error=failed`);
   }
 });
 

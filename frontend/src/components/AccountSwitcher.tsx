@@ -42,6 +42,17 @@ export default function AccountSwitcher({ isDarkMode, collapsed }: Props) {
 
   useEffect(() => {
     fetchAccounts();
+    // Handle redirect-based OAuth return
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('fb_success') === '1') {
+      toast.success('Facebook account connected!');
+      window.history.replaceState({}, '', window.location.pathname);
+      fetchAccounts();
+    } else if (params.get('fb_error')) {
+      const err = params.get('fb_error');
+      toast.error(err === 'auth' ? 'Session expired. Please log in again.' : 'Facebook connection failed. Try again.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
     const handler = (e: Event) => {
       setActiveId((e as CustomEvent).detail.accountId);
     };
@@ -149,7 +160,7 @@ export default function AccountSwitcher({ isDarkMode, collapsed }: Props) {
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
-        {showAddModal && <AddAccountModal isDarkMode={isDarkMode} tokenInput={tokenInput} setTokenInput={setTokenInput} connecting={connecting} onConnect={connectAccount} onFBConnect={async (t) => { setTokenInput(t); setTimeout(() => connectAccount(), 100); }} onClose={() => setShowAddModal(false)} />}
+        {showAddModal && <AddAccountModal isDarkMode={isDarkMode} tokenInput={tokenInput} setTokenInput={setTokenInput} connecting={connecting} onConnect={connectAccount} onClose={() => setShowAddModal(false)} />}
       </div>
     );
   }
@@ -233,22 +244,6 @@ export default function AccountSwitcher({ isDarkMode, collapsed }: Props) {
           setTokenInput={setTokenInput}
           connecting={connecting}
           onConnect={connectAccount}
-          onFBConnect={async (userToken) => {
-            setConnecting(true);
-            try {
-              const headers = await getAuthHeaders();
-              const res = await axios.post(`${API}/api/facebook/accounts`, { accessToken: userToken }, { headers });
-              toast.success(`Connected: ${res.data.account.name} (${res.data.pagesCount} pages)`);
-              setShowAddModal(false);
-              await fetchAccounts();
-              switchAccount(res.data.account.id);
-            } catch (err: any) {
-              const detail = err.response?.data?.detail;
-              toast.error(detail ? `Facebook: ${detail}` : 'Failed to connect. Check permissions.');
-            } finally {
-              setConnecting(false);
-            }
-          }}
           onClose={() => setShowAddModal(false)}
         />
       )}
@@ -256,68 +251,21 @@ export default function AccountSwitcher({ isDarkMode, collapsed }: Props) {
   );
 }
 
-const FB_APP_ID = '882562011265884';
-
-function loadFBSDK(): Promise<void> {
-  return new Promise((resolve) => {
-    if ((window as any).FB) { resolve(); return; }
-    (window as any).fbAsyncInit = () => {
-      (window as any).FB.init({ appId: FB_APP_ID, cookie: true, xfbml: false, version: 'v19.0' });
-      resolve();
-    };
-    if (!document.getElementById('fb-sdk')) {
-      const s = document.createElement('script');
-      s.id = 'fb-sdk';
-      s.src = 'https://connect.facebook.net/en_US/sdk.js';
-      s.async = true;
-      document.head.appendChild(s);
-    }
-  });
-}
-
-function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, onConnect, onFBConnect, onClose }: {
+function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, onConnect, onClose }: {
   isDarkMode: boolean;
   tokenInput: string;
   setTokenInput: (v: string) => void;
   connecting: boolean;
   onConnect: () => void;
-  onFBConnect: (token: string) => void;
   onClose: () => void;
 }) {
   const [showManual, setShowManual] = useState(false);
-  const [fbLoading, setFbLoading] = useState(false);
-  const [sdkReady, setSdkReady] = useState(!!(window as any).FB);
 
-  // Pre-load SDK when modal opens so FB.login() can be called synchronously
-  useEffect(() => {
-    if ((window as any).FB) { setSdkReady(true); return; }
-    (window as any).fbAsyncInit = () => {
-      (window as any).FB.init({ appId: FB_APP_ID, cookie: true, xfbml: false, version: 'v19.0' });
-      setSdkReady(true);
-    };
-    if (!document.getElementById('fb-sdk')) {
-      const s = document.createElement('script');
-      s.id = 'fb-sdk';
-      s.src = 'https://connect.facebook.net/en_US/sdk.js';
-      s.async = true;
-      document.head.appendChild(s);
-    }
-  }, []);
-
-  // Must be synchronous (not async) to avoid popup blocker
   const loginWithFacebook = () => {
-    if (!sdkReady) { toast.error('Facebook SDK loading, try again in a second'); return; }
-    setFbLoading(true);
-    (window as any).FB.login((response: any) => {
-      setFbLoading(false);
-      if (response.authResponse?.accessToken) {
-        onFBConnect(response.authResponse.accessToken);
-      } else {
-        toast.error(response.status === 'not_authorized'
-          ? 'Permission denied. Allow all requested permissions.'
-          : 'Facebook login cancelled');
-      }
-    }, { scope: 'pages_manage_posts,pages_read_engagement,pages_show_list,public_profile' });
+    const authToken = localStorage.getItem('auth_token') || localStorage.getItem('dev_bypass_token') || '';
+    if (!authToken) { toast.error('Please log in first'); return; }
+    const state = btoa(JSON.stringify({ token: authToken }));
+    window.location.href = `${API}/api/facebook/oauth/start?state=${encodeURIComponent(state)}`;
   };
 
   return (
