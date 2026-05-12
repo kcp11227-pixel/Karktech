@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PenSquare, LogOut, Users, Activity, Settings as SettingsIcon, CalendarDays, FileText, Moon, Sun, ChevronLeft, ChevronRight, Sparkles, Library } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useClerk } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import PostDrawer from './PostDrawer';
 import BrandLoader from './BrandLoader';
 import ProfilePanel from './ProfilePanel';
@@ -23,7 +23,7 @@ const NAV_ADMIN = [
 ];
 
 export default function Layout() {
-  const { signOut } = useClerk();
+  const { logout } = useAuth();
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<{ content: string; link?: string; imageUrl?: string } | null>(null);
@@ -60,11 +60,9 @@ export default function Layout() {
   const initials = user?.name?.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || 'U';
   const [savedAvatar, setSavedAvatar] = useState(() => localStorage.getItem('user_avatar') || '');
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsLoggingOut(true);
-    localStorage.removeItem('user');
-    await signOut();
-    window.location.href = '/login';
+    logout();
   };
 
   const isActive = (path: string) => location.pathname === path;

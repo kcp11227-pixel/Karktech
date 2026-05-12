@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Plus, X, ChevronDown, Check, AlertCircle } from 'lucide-react';
 
 import toast from '../utils/toast';
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 interface FBAccount {
   id: string;
@@ -259,7 +259,7 @@ function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, on
       'width=600,height=700,left=400,top=100',
     );
     const handler = (e: MessageEvent) => {
-      if (e.origin !== 'http://localhost:5173') return;
+      if (e.data?.type !== 'fb_oauth_token') return;
       if (e.data?.type === 'fb_oauth_token') {
         window.removeEventListener('message', handler);
         setFbLoading(false);

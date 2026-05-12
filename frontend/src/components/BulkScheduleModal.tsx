@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { X, Layers, Calendar, Check, Send, Image, MessageSquare, Clock } from 'lucide-react';
 import toast from '../utils/toast';
 import { getActiveAccountId } from './AccountSwitcher';
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 interface Page {
   id: string;

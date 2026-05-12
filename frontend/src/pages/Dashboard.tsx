@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { Clock, CheckCircle2, XCircle, Trash2, CalendarClock, Users, Globe, Activity, TrendingUp } from 'lucide-react';
 import toast from '../utils/toast';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import BrandLoader from '../components/BrandLoader';
 
 interface LayoutContext {
@@ -13,7 +13,7 @@ interface LayoutContext {
   setProfileOpen: (open: boolean) => void;
 }
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 export default function Dashboard() {
   const { isDarkMode } = useOutletContext<LayoutContext>();

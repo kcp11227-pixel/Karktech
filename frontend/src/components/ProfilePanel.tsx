@@ -9,7 +9,7 @@ const AVATARS = [
   '/avatar3.png.png',
 ];
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 interface Props {
   isOpen: boolean;

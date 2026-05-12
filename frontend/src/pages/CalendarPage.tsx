@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, PenSquare, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
 
@@ -10,7 +10,7 @@ interface LayoutContext {
   isDarkMode: boolean;
 }
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 const statusColor: Record<string, string> = {
   PUBLISHED: 'bg-green-500',

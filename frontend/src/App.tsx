@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useEffect, useState } from 'react';
-import { ClerkProvider, useAuth, useUser, AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -18,56 +17,8 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import LandingPage from './pages/LandingPage';
 
-const DEV_BYPASS = !!localStorage.getItem('dev_bypass_token');
-
 function AppRoutes() {
-  const { isSignedIn, isLoaded } = useAuth();
-  const { user } = useUser();
-  const isDark = localStorage.getItem('theme') === 'dark';
-  const [timedOut, setTimedOut] = useState(false);
-
-  const effectivelySignedIn = isSignedIn || DEV_BYPASS;
-
-  // Safety: if Clerk never loads in 6s, unblock the app
-  useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 6000);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Sync Clerk user info to localStorage so existing Layout/pages read it
-  useEffect(() => {
-    if (DEV_BYPASS) {
-      if (!localStorage.getItem('user')) {
-        localStorage.setItem('user', JSON.stringify({
-          id: 'dev-user', name: 'Dev User', email: 'dev@karktech.com', role: 'USER',
-        }));
-      }
-      return;
-    }
-    if (user) {
-      localStorage.setItem('user', JSON.stringify({
-        id: user.id,
-        name: user.fullName || user.firstName || '',
-        email: user.primaryEmailAddress?.emailAddress || '',
-        role: (user.publicMetadata as any)?.role || 'USER',
-      }));
-    } else if (isLoaded && !isSignedIn) {
-      localStorage.removeItem('user');
-    }
-  }, [user, isLoaded, isSignedIn]);
-
-  if (!isLoaded && !timedOut) {
-    return (
-      <div className={`fixed inset-0 flex flex-col items-center justify-center z-[9999] ${isDark ? 'bg-[#000000]' : 'bg-[#f4f7f6]'}`}>
-        <img src="/Karkloading.gif.gif" alt="Loading KarkTech..." className="w-56 h-56 object-contain" />
-        <div className="flex gap-1.5 mt-4">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.3s]"></div>
-          <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-bounce [animation-delay:-0.15s]"></div>
-          <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"></div>
-        </div>
-      </div>
-    );
-  }
+  const { isSignedIn } = useAuth();
 
   return (
     <Router>
@@ -94,14 +45,13 @@ function AppRoutes() {
         }}
       />
       <Routes>
-        <Route path="/login" element={!effectivelySignedIn ? <Login /> : <Navigate to="/" />} />
-        <Route path="/register" element={!effectivelySignedIn ? <Register /> : <Navigate to="/" />} />
+        <Route path="/login" element={!isSignedIn ? <Login /> : <Navigate to="/" />} />
+        <Route path="/register" element={!isSignedIn ? <Register /> : <Navigate to="/" />} />
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
 
-        <Route path="/" element={effectivelySignedIn ? <Layout /> : <Navigate to="/landing" />}>
+        <Route path="/" element={isSignedIn ? <Layout /> : <Navigate to="/landing" />}>
           <Route index element={<Dashboard />} />
           <Route path="compose" element={<PostComposer />} />
           <Route path="settings" element={<Settings />} />
@@ -119,13 +69,9 @@ function AppRoutes() {
 
 function App() {
   return (
-    <ClerkProvider
-      publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
-      signInUrl="/login"
-      signUpUrl="/register"
-    >
+    <AuthProvider>
       <AppRoutes />
-    </ClerkProvider>
+    </AuthProvider>
   );
 }
 

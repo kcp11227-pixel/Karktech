@@ -3,7 +3,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { FileText, CheckCircle2, Clock, AlertCircle, Trash2, PenSquare, RefreshCw } from 'lucide-react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import toast from '../utils/toast';
 import BrandLoader from '../components/BrandLoader';
 
@@ -13,7 +13,7 @@ interface LayoutContext {
   setProfileOpen: (open: boolean) => void;
 }
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 const statusConfig: Record<string, { label: string; icon: any; bg: string; text: string; darkBg: string }> = {
   PUBLISHED: { label: 'Published', icon: CheckCircle2, bg: 'bg-green-100', text: 'text-green-700', darkBg: 'bg-green-900/20' },

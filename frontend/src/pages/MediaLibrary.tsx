@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Search, RefreshCw, RotateCcw, Calendar, Clock, CheckCircle2, AlertCircle, FileText, Layers, X, Image } from 'lucide-react';
 import toast from '../utils/toast';
 import BulkScheduleModal from '../components/BulkScheduleModal';
 import { getActiveAccountId } from '../components/AccountSwitcher';
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 interface Post {
   id: string;

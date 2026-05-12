@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import toast from '../utils/toast';
 import { Globe, Link as LinkIcon, Calendar, Image as ImageIcon, Send } from 'lucide-react';
 
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
+
 export default function PostComposer() {
   const [pages, setPages] = useState<any[]>([]);
   const [selectedPage, setSelectedPage] = useState('');
@@ -21,7 +23,7 @@ export default function PostComposer() {
   const fetchPages = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:3000/api/facebook/pages', {
+      const res = await axios.get(`${API}/api/facebook/pages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPages(res.data);
@@ -37,7 +39,7 @@ export default function PostComposer() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:3000/api/facebook/pages', 
+      await axios.post(`${API}/api/facebook/pages`,
         { accessToken: fbTokenInput },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,7 +55,7 @@ export default function PostComposer() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:3000/api/posts', 
+      await axios.post(`${API}/api/posts`,
         {
           pageId: selectedPage,
           content,

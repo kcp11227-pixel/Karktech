@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from '../utils/toast';
 import { format } from 'date-fns';
@@ -21,7 +21,7 @@ interface PostDrawerProps {
 
 const FALLBACK_PAGES: { id: string; name: string; avatar: string; pictureUrl?: string }[] = [];
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
 type PostTab = 'Post' | 'Reel' | 'Story';
 type PreviewDevice = 'desktop' | 'mobile';

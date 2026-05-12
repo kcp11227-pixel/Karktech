@@ -72,15 +72,16 @@ app.get('/api/facebook/oauth/callback', async (req, res) => {
     });
     const longToken = llRes.data.access_token || accessToken;
 
-    // Send token back to opener window
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.send(`
       <script>
-        window.opener && window.opener.postMessage({ type: 'fb_oauth_token', token: '${longToken}' }, 'http://localhost:5173');
+        window.opener && window.opener.postMessage({ type: 'fb_oauth_token', token: '${longToken}' }, '${frontendUrl}');
         window.close();
       </script>
     `);
   } catch (err: any) {
-    res.send(`<script>window.opener && window.opener.postMessage({ type: 'fb_oauth_error', error: 'Failed' }, 'http://localhost:5173'); window.close();</script>`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.send(`<script>window.opener && window.opener.postMessage({ type: 'fb_oauth_error', error: 'Failed' }, '${frontendUrl}'); window.close();</script>`);
   }
 });
 
