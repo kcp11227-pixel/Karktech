@@ -44,7 +44,8 @@ app.use((_req, res, next) => {
 app.get('/api/facebook/oauth/start', (req, res) => {
   const { userId } = req.query;
   const APP_ID = process.env.FACEBOOK_APP_ID;
-  const redirectUri = 'http://localhost:3000/api/facebook/oauth/callback';
+  const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+  const redirectUri = `${BACKEND_URL}/api/facebook/oauth/callback`;
   const scope = 'pages_manage_posts,pages_read_engagement,pages_show_list,public_profile';
   const state = encodeURIComponent(String(userId || ''));
   const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
@@ -58,7 +59,8 @@ app.get('/api/facebook/oauth/callback', async (req, res) => {
   try {
     const APP_ID = process.env.FACEBOOK_APP_ID;
     const APP_SECRET = process.env.FACEBOOK_APP_SECRET;
-    const redirectUri = 'http://localhost:3000/api/facebook/oauth/callback';
+    const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+    const redirectUri = `${BACKEND_URL}/api/facebook/oauth/callback`;
 
     // Exchange code for token
     const tokenRes = await (await import('axios')).default.get('https://graph.facebook.com/v19.0/oauth/access_token', {
