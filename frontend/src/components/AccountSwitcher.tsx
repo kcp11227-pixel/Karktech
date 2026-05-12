@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Plus, X, ChevronDown, Check, AlertCircle } from 'lucide-react';
+import { Plus, X, ChevronDown, Check } from 'lucide-react';
 
 import toast from '../utils/toast';
 
@@ -233,6 +233,22 @@ export default function AccountSwitcher({ isDarkMode, collapsed }: Props) {
           setTokenInput={setTokenInput}
           connecting={connecting}
           onConnect={connectAccount}
+          onFBConnect={async (userToken) => {
+            setConnecting(true);
+            try {
+              const headers = await getAuthHeaders();
+              const res = await axios.post(`${API}/api/facebook/accounts`, { accessToken: userToken }, { headers });
+              toast.success(`Connected: ${res.data.account.name} (${res.data.pagesCount} pages)`);
+              setShowAddModal(false);
+              await fetchAccounts();
+              switchAccount(res.data.account.id);
+            } catch (err: any) {
+              const detail = err.response?.data?.detail;
+              toast.error(detail ? `Facebook: ${detail}` : 'Failed to connect. Check permissions.');
+            } finally {
+              setConnecting(false);
+            }
+          }}
           onClose={() => setShowAddModal(false)}
         />
       )}
@@ -240,46 +256,54 @@ export default function AccountSwitcher({ isDarkMode, collapsed }: Props) {
   );
 }
 
-function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, onConnect, onClose }: {
+const FB_APP_ID = '882562011265884';
+
+function loadFBSDK(): Promise<void> {
+  return new Promise((resolve) => {
+    if ((window as any).FB) { resolve(); return; }
+    (window as any).fbAsyncInit = () => {
+      (window as any).FB.init({ appId: FB_APP_ID, cookie: true, xfbml: false, version: 'v19.0' });
+      resolve();
+    };
+    if (!document.getElementById('fb-sdk')) {
+      const s = document.createElement('script');
+      s.id = 'fb-sdk';
+      s.src = 'https://connect.facebook.net/en_US/sdk.js';
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  });
+}
+
+function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, onConnect, onFBConnect, onClose }: {
   isDarkMode: boolean;
   tokenInput: string;
   setTokenInput: (v: string) => void;
   connecting: boolean;
   onConnect: () => void;
+  onFBConnect: (token: string) => void;
   onClose: () => void;
 }) {
   const [showManual, setShowManual] = useState(false);
   const [fbLoading, setFbLoading] = useState(false);
 
-  const loginWithFacebook = () => {
+  const loginWithFacebook = async () => {
     setFbLoading(true);
-    const popup = window.open(
-      `http://localhost:3000/api/facebook/oauth/start`,
-      'fb_oauth',
-      'width=600,height=700,left=400,top=100',
-    );
-    const handler = (e: MessageEvent) => {
-      if (e.data?.type !== 'fb_oauth_token') return;
-      if (e.data?.type === 'fb_oauth_token') {
-        window.removeEventListener('message', handler);
-        setFbLoading(false);
-        setTokenInput(e.data.token);
-        setTimeout(() => onConnect(), 100);
-      } else if (e.data?.type === 'fb_oauth_error') {
-        window.removeEventListener('message', handler);
-        setFbLoading(false);
-        setShowManual(true);
-      }
-    };
-    window.addEventListener('message', handler);
-    // If popup is closed without auth
-    const timer = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(timer);
-        window.removeEventListener('message', handler);
-        setFbLoading(false);
-      }
-    }, 500);
+    try {
+      await loadFBSDK();
+      (window as any).FB.login((response: any) => {
+        if (response.authResponse?.accessToken) {
+          onFBConnect(response.authResponse.accessToken);
+          setFbLoading(false);
+        } else {
+          setFbLoading(false);
+          toast.error('Facebook login cancelled or permission denied');
+        }
+      }, { scope: 'pages_manage_posts,pages_read_engagement,pages_show_list,public_profile' });
+    } catch {
+      setFbLoading(false);
+      toast.error('Failed to load Facebook SDK');
+    }
   };
 
   return (
@@ -289,14 +313,14 @@ function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, on
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className={`text-base font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Connect Facebook Account</h3>
-            <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Add another Facebook account to this dashboard</p>
+            <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Add your Facebook account to manage pages</p>
           </div>
           <button onClick={onClose} className={`w-7 h-7 rounded-lg flex items-center justify-center ${isDarkMode ? 'text-slate-500 hover:bg-white/10' : 'text-slate-400 hover:bg-slate-100'}`}>
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Facebook Login Button */}
+        {/* Facebook Login Button (JS SDK — no redirect URI needed) */}
         <button
           onClick={loginWithFacebook}
           disabled={fbLoading || connecting}
@@ -307,7 +331,7 @@ function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, on
             ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             : <svg className="w-5 h-5" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
           }
-          {connecting ? 'Connecting...' : fbLoading ? 'Opening Facebook...' : 'Login with Facebook'}
+          {connecting ? 'Connecting...' : fbLoading ? 'Connecting to Facebook...' : 'Login with Facebook'}
         </button>
 
         {/* Manual token toggle */}
@@ -343,13 +367,6 @@ function AddAccountModal({ isDarkMode, tokenInput, setTokenInput, connecting, on
             </button>
           </>
         )}
-
-        <div className={`flex items-start gap-2 rounded-xl p-3 ${isDarkMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-100'}`}>
-          <AlertCircle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <p className={`text-[11px] font-medium ${isDarkMode ? 'text-amber-400/80' : 'text-amber-700'}`}>
-            Facebook app development mode ma chha — only app admins/testers le connect garna sakchhan.
-          </p>
-        </div>
       </div>
     </>
   );
