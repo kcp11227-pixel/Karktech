@@ -45,7 +45,7 @@ app.get('/api/facebook/oauth/start', (req, res) => {
   const APP_ID = process.env.FACEBOOK_APP_ID;
   const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
   const redirectUri = `${BACKEND_URL}/api/facebook/oauth/callback`;
-  const scope = 'pages_manage_posts,pages_read_engagement,pages_show_list,public_profile';
+  const scope = 'pages_manage_posts,pages_show_list,public_profile';
   const state = encodeURIComponent(String(req.query.state || ''));
   const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
   res.redirect(url);
