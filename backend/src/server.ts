@@ -63,7 +63,8 @@ app.get('/api/facebook/oauth/callback', async (req, res) => {
     const redirectUri = `${BACKEND_URL}/api/facebook/oauth/callback`;
     const axiosInst = (await import('axios')).default;
     const { PrismaClient } = await import('@prisma/client');
-    const jwt = await import('jsonwebtoken');
+    const jwtMod = await import('jsonwebtoken');
+    const jwtVerify = (jwtMod.default || jwtMod).verify as typeof import('jsonwebtoken').verify;
     const prisma = new PrismaClient();
     const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -76,11 +77,10 @@ app.get('/api/facebook/oauth/callback', async (req, res) => {
       const token = stateData.token;
       // Handle dev bypass token
       if (token === 'DEV_KARKTECH_2026') {
-        const prisma2 = new PrismaClient();
-        const devUser = await prisma2.user.findFirst({ where: { email: 'dev@karktech.com' } });
+        const devUser = await prisma.user.findFirst({ where: { email: 'dev@karktech.com' } });
         if (devUser) userId = devUser.id;
       } else {
-        const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
+        const payload = jwtVerify(token, JWT_SECRET) as { userId: string };
         userId = payload.userId;
       }
     } catch (e: any) {
