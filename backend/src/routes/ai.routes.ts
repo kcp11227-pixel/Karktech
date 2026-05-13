@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -7,18 +10,14 @@ router.use(authenticate);
 
 async function generateFreeImage(prompt: string): Promise<string | null> {
   try {
-    // Pollinations.ai — completely free, no API key, returns image directly
-    // We download it, save locally, and serve from our server (Facebook needs a stable URL)
     const encoded = encodeURIComponent(prompt);
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1216&height=832&model=flux&nologo=true&seed=${Date.now()}`;
+    // Pollinations.ai — free, unlimited, no API key
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=680&model=flux&nologo=true&seed=${Date.now()}`;
 
-    const fs = await import('fs');
-    const path = await import('path');
-    const crypto = await import('crypto');
+    const imgRes = await axios.get(url, { responseType: 'arraybuffer', timeout: 90000 });
+    if (!imgRes.data || imgRes.data.byteLength < 1000) return null;
 
-    const imgRes = await axios.get(url, { responseType: 'arraybuffer', timeout: 60000 });
-    const ext = 'jpg';
-    const filename = `story_${crypto.randomBytes(8).toString('hex')}.${ext}`;
+    const filename = `story_${crypto.randomBytes(8).toString('hex')}.jpg`;
     const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
     fs.writeFileSync(path.join(uploadsDir, filename), imgRes.data);
@@ -57,19 +56,8 @@ Format: ["post 1 text here", "post 2 text here", ...]`;
 
     const response = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
-      {
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.85,
-        max_tokens: 3000,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000,
-      }
+      { model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }], temperature: 0.85, max_tokens: 3000 },
+      { headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' }, timeout: 30000 }
     );
 
     const raw = response.data.choices[0]?.message?.content || '[]';
@@ -105,7 +93,7 @@ Rules:
 - Do NOT include hashtags
 - Return ONLY the story text, nothing else`;
 
-    // Run Groq and free image generation in parallel
+    // Groq (fast) and Pollinations image generation in parallel
     const [groqResult, imageUrl] = await Promise.all([
       axios.post(
         'https://api.groq.com/openai/v1/chat/completions',
