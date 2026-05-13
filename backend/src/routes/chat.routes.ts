@@ -14,41 +14,72 @@ You are friendly, sharp, and deeply knowledgeable about:
 
 Keep responses concise (2–4 sentences usually), practical, and conversational. Use emojis occasionally to feel human. Never be robotic. If asked who you are, say you're Kark — an AI by KarkTech.`;
 
+async function callGroq(messages: any[]): Promise<string> {
+  const GROQ_API_KEY = process.env.GROQ_API_KEY;
+  if (!GROQ_API_KEY) throw new Error('Groq not configured');
+
+  const history = messages.slice(-20).map((m: any) => ({
+    role: m.role === 'user' ? 'user' : 'assistant',
+    content: String(m.content).slice(0, 2000),
+  }));
+
+  const res = await axios.post(
+    'https://api.groq.com/openai/v1/chat/completions',
+    {
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
+      temperature: 0.8,
+      max_tokens: 600,
+    },
+    {
+      headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+      timeout: 20000,
+    }
+  );
+  return res.data.choices[0]?.message?.content?.trim() || '';
+}
+
+async function callGemini(messages: any[]): Promise<string> {
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) throw new Error('Gemini not configured');
+
+  // Convert messages to Gemini format (role: user | model)
+  const contents = messages.slice(-20).map((m: any) => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: [{ text: String(m.content).slice(0, 2000) }],
+  }));
+
+  const res = await axios.post(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents,
+      generationConfig: { maxOutputTokens: 600, temperature: 0.8 },
+    },
+    { headers: { 'Content-Type': 'application/json' }, timeout: 20000 }
+  );
+  return res.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+}
+
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { messages } = req.body;
+    const { messages, model = 'groq' } = req.body;
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'messages required' });
     }
 
-    const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    if (!GROQ_API_KEY) return res.status(500).json({ error: 'AI not configured' });
+    let reply: string;
+    if (model === 'gemini') {
+      reply = await callGemini(messages);
+    } else {
+      reply = await callGroq(messages);
+    }
 
-    // Keep last 20 messages for context
-    const history = messages.slice(-20).map((m: any) => ({
-      role: m.role === 'user' ? 'user' : 'assistant',
-      content: String(m.content).slice(0, 2000),
-    }));
-
-    const response = await axios.post(
-      'https://api.groq.com/openai/v1/chat/completions',
-      {
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
-        temperature: 0.8,
-        max_tokens: 600,
-      },
-      {
-        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        timeout: 20000,
-      }
-    );
-
-    const reply = response.data.choices[0]?.message?.content?.trim() || '';
     res.json({ reply });
   } catch (err: any) {
     console.error('Chat error:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Chat failed, try again.' });
+    const msg = err.response?.data?.error?.message || err.message || 'Chat failed';
+    res.status(500).json({ error: msg });
   }
 });
 
