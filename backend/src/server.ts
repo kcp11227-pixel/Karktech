@@ -9,6 +9,7 @@ import accountRoutes from './routes/accounts.routes';
 import postRoutes from './routes/posts.routes';
 import mediaRoutes from './routes/media.routes';
 import aiRoutes from './routes/ai.routes';
+import chatRoutes from './routes/chat.routes';
 
 dotenv.config();
 
@@ -146,6 +147,7 @@ app.use('/api/facebook/accounts', accountRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

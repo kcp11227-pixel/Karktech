@@ -16,6 +16,7 @@ import Layout from './components/Layout';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import LandingPage from './pages/LandingPage';
+import KarkAI from './pages/KarkAI';
 
 function AppRoutes() {
   const { isSignedIn } = useAuth();
@@ -48,6 +49,7 @@ function AppRoutes() {
         <Route path="/login" element={!isSignedIn ? <Login /> : <Navigate to="/" />} />
         <Route path="/register" element={!isSignedIn ? <Register /> : <Navigate to="/" />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/kark-ai" element={<KarkAI />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
 
