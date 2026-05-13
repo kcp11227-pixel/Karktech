@@ -8,7 +8,7 @@ export default function BrandLoader({ size = 'md' }: { size?: 'sm' | 'md' | 'lg'
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <img
-        src="/Karkloading.gif.gif"
+        src="/monkey.gif.gif"
         alt="Loading..."
         className={`${sizes[size]} object-contain`}
       />

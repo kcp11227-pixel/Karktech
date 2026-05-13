@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Send, ArrowLeft, Sparkles } from 'lucide-react';
+import { Send, ArrowLeft } from 'lucide-react';
 
 const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
@@ -16,18 +16,13 @@ const SUGGESTIONS = [
   'Give me 5 content ideas for this week',
 ];
 
-function TypingDots() {
+function MonkeyAvatar({ size = 28 }: { size?: number }) {
   return (
-    <div className="flex items-center gap-1 px-1 py-1">
-      {[0, 1, 2].map(i => (
-        <div
-          key={i}
-          className="w-2 h-2 rounded-full bg-violet-400"
-          style={{ animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }}
-        />
-      ))}
-      <style>{`@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }`}</style>
-    </div>
+    <img
+      src="/monkey.gif.gif"
+      alt="Kark"
+      style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+    />
   );
 }
 
@@ -81,7 +76,7 @@ export default function KarkAI() {
     <div className="min-h-screen bg-[#070711] flex flex-col" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
 
       {/* Header */}
-      <header className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 border-b border-white/[0.06] bg-[#070711]/80 backdrop-blur-xl sticky top-0 z-10">
+      <header className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-3 border-b border-white/[0.06] bg-[#070711]/80 backdrop-blur-xl sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Link to="/landing" className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-medium">
             <ArrowLeft className="w-4 h-4" />
@@ -89,12 +84,10 @@ export default function KarkAI() {
           </Link>
           <div className="w-px h-5 bg-white/10" />
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            <img src="/monkey.gif.gif" alt="Kark" className="w-9 h-9 rounded-xl object-cover" style={{ imageRendering: 'auto' }} />
             <div>
               <p className="text-sm font-black text-white leading-none">Kark</p>
-              <p className="text-[10px] text-white/30 leading-none mt-0.5">by KarkTech</p>
+              <p className="text-[10px] text-white/30 leading-none mt-0.5">by KarkTech · Always online</p>
             </div>
           </div>
         </div>
@@ -114,9 +107,12 @@ export default function KarkAI() {
           {/* Welcome hero — only when 1 message (initial) */}
           {messages.length === 1 && (
             <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-violet-500/30">
-                <Sparkles className="w-8 h-8 text-white" />
-              </div>
+              <img
+                src="/monkey.gif.gif"
+                alt="Kark"
+                className="w-24 h-24 rounded-3xl object-cover mx-auto mb-4 shadow-2xl"
+                style={{ boxShadow: '0 0 40px rgba(139,92,246,0.4)' }}
+              />
               <h1 className="text-3xl font-black text-white mb-2" style={{ fontFamily: 'Merriweather, serif' }}>
                 Kark AI
               </h1>
@@ -129,11 +125,7 @@ export default function KarkAI() {
           {/* Messages */}
           {messages.map((msg, i) => (
             <div key={i} className={`flex items-end gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              {msg.role === 'assistant' && (
-                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center flex-shrink-0 mb-0.5 shadow-md shadow-violet-500/20">
-                  <Sparkles className="w-3.5 h-3.5 text-white" />
-                </div>
-              )}
+              {msg.role === 'assistant' && <MonkeyAvatar size={28} />}
               <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
                   ? 'bg-gradient-to-br from-blue-600 to-violet-600 text-white rounded-br-md shadow-lg shadow-blue-500/20'
@@ -144,14 +136,20 @@ export default function KarkAI() {
             </div>
           ))}
 
-          {/* Typing indicator */}
+          {/* Typing indicator — monkey gif bouncing */}
           {loading && (
             <div className="flex items-end gap-3">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-violet-500/20">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
-              </div>
-              <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl rounded-bl-md px-4 py-2">
-                <TypingDots />
+              <img
+                src="/monkey.gif.gif"
+                alt="Kark thinking"
+                className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                style={{ animation: 'pulse 1s ease-in-out infinite' }}
+              />
+              <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <img src="/monkey.gif.gif" alt="" className="w-5 h-5 rounded-md object-cover" />
+                  <span className="text-xs text-white/40 font-medium">Kark is thinking...</span>
+                </div>
               </div>
             </div>
           )}
