@@ -43,22 +43,36 @@ async function callGemini(messages: any[]): Promise<string> {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   if (!GEMINI_API_KEY) throw new Error('Gemini not configured');
 
-  // Convert messages to Gemini format (role: user | model)
   const contents = messages.slice(-20).map((m: any) => ({
     role: m.role === 'user' ? 'user' : 'model',
     parts: [{ text: String(m.content).slice(0, 2000) }],
   }));
 
-  const res = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents,
-      generationConfig: { maxOutputTokens: 600, temperature: 0.8 },
-    },
-    { headers: { 'Content-Type': 'application/json' }, timeout: 20000 }
-  );
-  return res.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  // Try gemini-2.0-flash first, fall back to gemini-1.5-flash
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastErr: any;
+
+  for (const geminiModel of models) {
+    try {
+      const res = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents,
+          generationConfig: { maxOutputTokens: 600, temperature: 0.8 },
+        },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 20000 }
+      );
+      return res.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    } catch (err: any) {
+      lastErr = err;
+      const status = err.response?.status;
+      // Only retry on 429/quota — other errors fail immediately
+      if (status !== 429 && status !== 503) throw err;
+    }
+  }
+
+  throw lastErr;
 }
 
 router.post('/', async (req: Request, res: Response) => {
@@ -69,17 +83,25 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     let reply: string;
+    let usedModel = model;
+
     if (model === 'gemini') {
-      reply = await callGemini(messages);
+      try {
+        reply = await callGemini(messages);
+      } catch (geminiErr: any) {
+        // Gemini quota exceeded — silently fall back to Groq
+        console.error('Gemini failed, falling back to Groq:', geminiErr.response?.data?.error?.message || geminiErr.message);
+        reply = await callGroq(messages);
+        usedModel = 'groq-fallback';
+      }
     } else {
       reply = await callGroq(messages);
     }
 
-    res.json({ reply });
+    res.json({ reply, usedModel });
   } catch (err: any) {
     console.error('Chat error:', err.response?.data || err.message);
-    const msg = err.response?.data?.error?.message || err.message || 'Chat failed';
-    res.status(500).json({ error: msg });
+    res.status(500).json({ error: 'Chat failed, try again.' });
   }
 });
 

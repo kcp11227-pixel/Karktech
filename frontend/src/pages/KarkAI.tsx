@@ -93,13 +93,15 @@ export default function KarkAI() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply, model }]);
+      const actualModel: ModelId = data.usedModel === 'groq-fallback' ? 'groq' : model;
+      setMessages(prev => [...prev, { role: 'assistant', content: data.reply, model: actualModel }]);
+      if (data.usedModel === 'groq-fallback') {
+        setModel('groq');
+      }
     } catch (err: any) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: err.message?.includes('Gemini not configured')
-          ? "Gemini API key server ma add garnu parcha. Groq model use garnus! 🙏"
-          : "Sorry, something went wrong. Try again! 😅",
+        content: "Sorry, something went wrong. Try again! 😅",
         model,
       }]);
     } finally {
