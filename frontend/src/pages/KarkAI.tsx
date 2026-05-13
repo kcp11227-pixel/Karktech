@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Send, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Send, ArrowLeft, ChevronDown, ImageIcon } from 'lucide-react';
 
 const API = import.meta.env.DEV ? 'http://localhost:3000' : '';
 
@@ -171,6 +171,13 @@ export default function KarkAI() {
             )}
           </div>
 
+          <Link
+            to="/image-ai"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.07] transition-all text-xs font-bold text-white/60 hover:text-white"
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Image AI</span>
+          </Link>
           <Link
             to="/login"
             className="px-4 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:from-blue-500 hover:to-violet-500 transition-all shadow-lg shadow-blue-500/20"

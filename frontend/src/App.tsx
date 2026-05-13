@@ -17,6 +17,8 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import LandingPage from './pages/LandingPage';
 import KarkAI from './pages/KarkAI';
+import AIImageGenerator from './pages/AIImageGenerator';
+import ImageAI from './pages/ImageAI';
 
 function AppRoutes() {
   const { isSignedIn } = useAuth();
@@ -50,6 +52,7 @@ function AppRoutes() {
         <Route path="/register" element={!isSignedIn ? <Register /> : <Navigate to="/" />} />
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/kark-ai" element={<KarkAI />} />
+        <Route path="/image-ai" element={<ImageAI />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
 
@@ -63,6 +66,7 @@ function AppRoutes() {
           <Route path="media" element={<MediaLibrary />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="health" element={<HealthPage />} />
+          <Route path="ai-image" element={<AIImageGenerator />} />
         </Route>
       </Routes>
     </Router>

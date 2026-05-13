@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PenSquare, LogOut, Users, Activity, Settings as SettingsIcon, CalendarDays, FileText, Moon, Sun, ChevronLeft, ChevronRight, Sparkles, Library } from 'lucide-react';
+import { LayoutDashboard, PenSquare, LogOut, Users, Activity, Settings as SettingsIcon, CalendarDays, FileText, Moon, Sun, ChevronLeft, ChevronRight, Sparkles, Library, ImageIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import PostDrawer from './PostDrawer';
@@ -13,6 +13,7 @@ const NAV_USER = [
   { to: '/media',           label: 'Media Library', icon: Library,         color: 'from-fuchsia-500 to-pink-400',  glow: 'shadow-fuchsia-500/30', iconBg: 'bg-fuchsia-500/15 text-fuchsia-400' },
   { to: '/calendar',        label: 'Calendar',      icon: CalendarDays,    color: 'from-cyan-500 to-teal-400',     glow: 'shadow-cyan-500/30',    iconBg: 'bg-cyan-500/15 text-cyan-400' },
   { to: '/time-generator',  label: 'Intelligence',  icon: Sparkles,        color: 'from-amber-500 to-orange-400',  glow: 'shadow-amber-500/30',   iconBg: 'bg-amber-500/15 text-amber-400' },
+  { to: '/ai-image',        label: 'Image AI',      icon: ImageIcon,       color: 'from-pink-500 to-rose-400',     glow: 'shadow-pink-500/30',    iconBg: 'bg-pink-500/15 text-pink-400' },
 ];
 
 const NAV_ADMIN = [

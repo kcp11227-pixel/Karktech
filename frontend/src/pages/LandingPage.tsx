@@ -561,13 +561,22 @@ export default function LandingPage() {
                 <p className="text-white/50 text-base leading-relaxed mb-8 max-w-md mx-auto lg:mx-0">
                   Your AI co-pilot for social media. Ask anything — content ideas, captions, strategy, or just have a conversation.
                 </p>
-                <Link
-                  to="/kark-ai"
-                  className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-black text-sm text-white bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 transition-all shadow-xl shadow-violet-500/30"
-                >
-                  <Bot className="w-4 h-4" />
-                  Chat with Kark — Free
-                </Link>
+                <div className="flex flex-wrap items-center gap-3 justify-center lg:justify-start">
+                  <Link
+                    to="/kark-ai"
+                    className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-black text-sm text-white bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 transition-all shadow-xl shadow-violet-500/30"
+                  >
+                    <Bot className="w-4 h-4" />
+                    Chat with Kark — Free
+                  </Link>
+                  <Link
+                    to="/image-ai"
+                    className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-black text-sm text-white/70 border border-white/15 hover:border-pink-500/50 hover:text-white hover:bg-pink-500/10 transition-all"
+                  >
+                    <ImageIcon className="w-4 h-4 text-pink-400" />
+                    Image AI — Free
+                  </Link>
+                </div>
               </div>
 
               {/* Right: fake chat preview */}
