@@ -5,36 +5,28 @@ import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
 const router = Router();
 router.use(authenticate);
 
-const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
-
-async function generatePixazoImage(prompt: string): Promise<string | null> {
-  const PIXAZO_API_KEY = process.env.PIXAZO_API_KEY;
-  if (!PIXAZO_API_KEY) return null;
+async function generateFreeImage(prompt: string): Promise<string | null> {
   try {
-    const genRes = await axios.post(
-      'https://gateway.pixazo.ai/flux-dev/v1/dev/textToImage',
-      { prompt, image_size: 'landscape_4_3' },
-      { headers: { 'Ocp-Apim-Subscription-Key': PIXAZO_API_KEY, 'Content-Type': 'application/json' }, timeout: 15000 }
-    );
-    const requestId = genRes.data?.request_id;
-    if (!requestId) return null;
+    // Pollinations.ai — completely free, no API key, returns image directly
+    // We download it, save locally, and serve from our server (Facebook needs a stable URL)
+    const encoded = encodeURIComponent(prompt);
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1216&height=832&model=flux&nologo=true&seed=${Date.now()}`;
 
-    // Poll until done (max 90s)
-    for (let i = 0; i < 18; i++) {
-      await delay(5000);
-      const poll = await axios.get(
-        `https://gateway.pixazo.ai/v2/requests/status/${requestId}`,
-        { headers: { 'Ocp-Apim-Subscription-Key': PIXAZO_API_KEY }, timeout: 10000 }
-      );
-      const { status, output } = poll.data;
-      if (status === 'COMPLETED') {
-        return output?.media_url || output?.url || output?.images?.[0]?.url || null;
-      }
-      if (status === 'FAILED' || status === 'CANCELLED') return null;
-    }
-    return null;
+    const fs = await import('fs');
+    const path = await import('path');
+    const crypto = await import('crypto');
+
+    const imgRes = await axios.get(url, { responseType: 'arraybuffer', timeout: 60000 });
+    const ext = 'jpg';
+    const filename = `story_${crypto.randomBytes(8).toString('hex')}.${ext}`;
+    const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+    fs.writeFileSync(path.join(uploadsDir, filename), imgRes.data);
+
+    const BACKEND_URL = process.env.BACKEND_URL || 'https://karktech.tech';
+    return `${BACKEND_URL}/uploads/${filename}`;
   } catch (err: any) {
-    console.error('Pixazo error:', err.response?.data || err.message);
+    console.error('Image generation error:', err.message);
     return null;
   }
 }
@@ -113,14 +105,14 @@ Rules:
 - Do NOT include hashtags
 - Return ONLY the story text, nothing else`;
 
-    // Run Groq and Pixazo in parallel
+    // Run Groq and free image generation in parallel
     const [groqResult, imageUrl] = await Promise.all([
       axios.post(
         'https://api.groq.com/openai/v1/chat/completions',
         { model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: storyPrompt }], temperature: 0.9, max_tokens: 1000 },
         { headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' }, timeout: 30000 }
       ),
-      generatePixazoImage(prompt),
+      generateFreeImage(prompt),
     ]);
 
     const caption = groqResult.data.choices[0]?.message?.content?.trim() || '';
